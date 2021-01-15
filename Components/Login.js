@@ -66,112 +66,113 @@ class Login extends Component {
     const {scrollViewRef, switchAnimation, switchState} = this.state;
 
     return (
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        ref={this.state.scrollViewRef}>
-        <View style={styles.container}>
-          <StatusBar backgroundColor={'#F2F2F2'} barStyle={'dark-content'} />
-          <Animated.View
-            style={[
-              styles.header,
-              {
-                height: this.state.tentAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['45%', '24.75%'],
-                }),
-              },
-            ]}>
+      <View style={styles.container}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          ref={this.state.scrollViewRef}>
+            <StatusBar backgroundColor={'#F2F2F2'} barStyle={'dark-content'} />
             <Animated.View
-              style={{
-                height: this.state.tentAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['55%', '100%'],
-                }),
-              }}>
-              <Text adjustsFontSizeToFit style={styles.title}>
-                {'Inicia tu aventura con '}
-                <Text style={styles.textStrong}>Mochilapp</Text>
-              </Text>
-            </Animated.View>
-            <Animated.View
-              style={{
-                opacity: this.state.tentAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [1, 0],
-                }),
-                height: "45%"
-              }}>
-                <Tent/>
+              style={[
+                styles.header,
+                {
+                  height: this.state.tentAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [heightWindow * .45, heightWindow * .2475],
+                  }),
+                },
+              ]}>
+              <Animated.View
+                style={{
+                  height: this.state.tentAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['55%', '100%'],
+                  }),
+                  width: "80%"
+                }}>
+                <Text adjustsFontSizeToFit style={styles.title}>
+                  {'Inicia tu aventura con '}
+                  <Text style={styles.textStrong}>Mochilapp</Text>
+                </Text>
               </Animated.View>
-          </Animated.View>
+              <Animated.View
+                style={{
+                  opacity: this.state.tentAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 0],
+                  }),
+                  height: "45%"
+                }}>
+                  <Tent/>
+                </Animated.View>
+            </Animated.View>
 
-          <View style={styles.optionsContainer}>
+            <View style={styles.optionsContainer}>
+              <View
+                style={{
+                  //   backgroundColor: 'red',
+                  marginHorizontal: '16.5%',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  position: 'relative',
+                }}>
+                <Animated.View
+                  style={[
+                    styles.animatedView,
+                    {
+                      left: switchAnimation.interpolate({
+                        inputRange: [0, 55],
+                        outputRange: ['0%', '55%'],
+                      }),
+                    },
+                  ]}
+                />
+                <TouchableWithoutFeedback
+                  onPress={() => this.switchAnimation(false)}>
+                  <View style={styles.loginButtonsContainer}>
+                    <Text
+                      adjustsFontSizeToFit
+                      style={[
+                        styles.loginButtons,
+                        switchState || styles.activeButton,
+                      ]}>
+                      Iniciar sesión
+                    </Text>
+                  </View>
+                </TouchableWithoutFeedback>
+                <TouchableWithoutFeedback
+                  onPress={() => this.switchAnimation(true)}>
+                  <View style={styles.loginButtonsContainer}>
+                    <Text
+                      style={[
+                        styles.loginButtons,
+                        !switchState || styles.activeButton,
+                      ]}>
+                      Regístrate
+                    </Text>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            </View>
             <View
               style={{
-                //   backgroundColor: 'red',
-                marginHorizontal: '16.5%',
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                position: 'relative',
+                // marginHorizontal: '10%',
+                marginVertical: 10,
               }}>
-              <Animated.View
-                style={[
-                  styles.animatedView,
-                  {
-                    left: switchAnimation.interpolate({
-                      inputRange: [0, 55],
-                      outputRange: ['0%', '55%'],
-                    }),
-                  },
-                ]}
+              <TextInputMA
+                keyboardType={'email-address'}
+                type={'email'}
+                placeholder={'Correo electronico'}
+                scrollViewRef={scrollViewRef}
               />
-              <TouchableWithoutFeedback
-                onPress={() => this.switchAnimation(false)}>
-                <View style={styles.loginButtonsContainer}>
-                  <Text
-                    adjustsFontSizeToFit
-                    style={[
-                      styles.loginButtons,
-                      switchState || styles.activeButton,
-                    ]}>
-                    Iniciar sesión
-                  </Text>
-                </View>
-              </TouchableWithoutFeedback>
-              <TouchableWithoutFeedback
-                onPress={() => this.switchAnimation(true)}>
-                <View style={styles.loginButtonsContainer}>
-                  <Text
-                    style={[
-                      styles.loginButtons,
-                      !switchState || styles.activeButton,
-                    ]}>
-                    Regístrate
-                  </Text>
-                </View>
-              </TouchableWithoutFeedback>
+              <TextInputMA
+                type={'password'}
+                placeholder={'Contraseña'}
+                scrollViewRef={scrollViewRef}
+              />
             </View>
-          </View>
-          <View
-            style={{
-              // marginHorizontal: '10%',
-              marginVertical: 30,
-            }}>
-            <TextInputMA
-              keyboardType={'email-address'}
-              type={'email'}
-              placeholder={'Correo electronico'}
-              scrollViewRef={scrollViewRef}
-            />
-            <TextInputMA
-              type={'password'}
-              placeholder={'Contraseña'}
-              scrollViewRef={scrollViewRef}
-            />
-          </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     );
   }
 }
@@ -179,7 +180,7 @@ class Login extends Component {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: heightWindow,
+    height: '100%',
     backgroundColor: '#F2F2F2',
   },
   title: {
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     marginTop: 12,
-    height: '5%',
+    height: heightWindow * .05,
   },
   loginButtonsContainer: {
     width: (125 / 411) * widthWindow,
