@@ -1,8 +1,6 @@
 import React, {Component, createRef} from 'react';
 import {
-  View,
   TextInput,
-  ScrollView,
   findNodeHandle,
   Keyboard,
   Animated,
@@ -21,7 +19,7 @@ class TextInputMA extends Component {
   static current = null;
 
   static focusCurrent() {
-    console.log(TextInputMA.current);
+    // console.log(TextInputMA.current);
     if (TextInputMA.current != null) {
       TextInputMA.current.ti.measureLayout(
         findNodeHandle(TextInputMA.current.sv),
@@ -58,6 +56,8 @@ class TextInputMA extends Component {
       duration: 250,
       useNativeDriver: false,
     }).start()
+
+    this.props.scrollState();
   };
 
   onBlur = () => {
@@ -67,10 +67,12 @@ class TextInputMA extends Component {
       duration: 250,
       useNativeDriver: false,
     }).start()
+
+    this.props.scrollState();
   };
 
   render() {
-    console.log(this.props.type);
+    // console.log(this.props.type);
     return (
       <DropShadow
         style={{

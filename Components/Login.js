@@ -1,4 +1,7 @@
 import React, {Component} from 'react';
+import {ScrollView} from 'react-native-gesture-handler';
+import TextInputMA from './TextInputMA';
+import Tent from './Tent';
 import {
   View,
   Text,
@@ -10,26 +13,32 @@ import {
   Keyboard,
 } from 'react-native';
 
-import {ScrollView} from 'react-native-gesture-handler';
-import TextInputMA from './TextInputMA';
-import Tent from './Tent'
-
 const widthWindow = Dimensions.get('window').width;
 const heightWindow = Dimensions.get('window').height;
 
 class Login extends Component {
   state = {
     switchAnimation: new Animated.Value(0),
+    tentAnimation: new Animated.Value(0),
+    scrollViewRef: React.createRef(),
+    scrollViewFormRef: React.createRef(),
+    scrollViewFormPos: 0,
+
     switchState: false,
     onInput: false,
-    scrollViewRef: React.createRef(),
-    tentAnimation: new Animated.Value(0),
+    scrollEnabled: true,
   };
 
   componentWillUnmount() {
     Keyboard.removeAllListeners('keyboardWillShow');
     Keyboard.removeAllListeners('keyboardDidHide');
   }
+
+  changeStateOfScroll = () => {
+    !this.state.scrollEnabled
+      ? this.setState({scrollEnabled: true})
+      : this.setState({scrollEnabled: false});
+  };
 
   componentDidMount() {
     Keyboard.addListener('keyboardDidShow', () => {
@@ -40,17 +49,17 @@ class Login extends Component {
     });
   }
 
-  switchAnimation = (button) => {
-    const {switchAnimation, switchState} = this.state;
+  switchAnimation = (button = undefined, before = false) => {
+    const {switchAnimation, switchState, scrollViewFormRef} = this.state;
 
-    if (button != switchState) {
-      Animated.timing(switchAnimation, {
-        toValue: switchState ? 0 : 55,
-        duration: 250,
-        useNativeDriver: false,
-      }).start();
+    if (button != switchState && button != undefined || before === false) {
 
-      this.setState({switchState: !switchState});
+      if(before === false) {
+        !switchState 
+        ? scrollViewFormRef.current.scrollTo({x: widthWindow, animated: true})
+        : scrollViewFormRef.current.scrollTo({x: 0, animated:true});
+      }
+      
     }
   };
 
@@ -62,6 +71,27 @@ class Login extends Component {
     }).start();
   };
 
+  handleScroll = (event) => {
+    const scrollPosition = (event.nativeEvent.contentOffset.x / widthWindow) * 100;
+    
+
+    if(scrollPosition > 80) {
+      this.switchAnimation(true, true)
+      
+
+      this.setState({switchState: false});
+    } else if(scrollPosition <= 30) {
+      this.switchAnimation(true, true);
+     
+
+      this.setState({switchState: false});
+    }
+    // scrollPosition > 80 
+    //   ? this.switchAnimation(true, true)
+    //     : this.switchAnimation(false, true)
+
+  }
+
   render() {
     const {scrollViewRef, switchAnimation, switchState} = this.state;
 
@@ -70,107 +100,139 @@ class Login extends Component {
         <ScrollView
           showsVerticalScrollIndicator={false}
           ref={this.state.scrollViewRef}>
-            <StatusBar backgroundColor={'#F2F2F2'} barStyle={'dark-content'} />
+          <StatusBar backgroundColor={'#F2F2F2'} barStyle={'dark-content'} />
+          <Animated.View
+            style={[
+              styles.header,
+              {
+                height: this.state.tentAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [heightWindow * 0.45, heightWindow * 0.2475],
+                }),
+              },
+            ]}>
             <Animated.View
-              style={[
-                styles.header,
-                {
-                  height: this.state.tentAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [heightWindow * .45, heightWindow * .2475],
-                  }),
-                },
-              ]}>
-              <Animated.View
-                style={{
-                  height: this.state.tentAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['55%', '100%'],
-                  }),
-                  width: "80%"
-                }}>
-                <Text adjustsFontSizeToFit style={styles.title}>
-                  {'Inicia tu aventura con '}
-                  <Text style={styles.textStrong}>Mochilapp</Text>
-                </Text>
-              </Animated.View>
-              <Animated.View
-                style={{
-                  opacity: this.state.tentAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [1, 0],
-                  }),
-                  height: "45%"
-                }}>
-                  <Tent/>
-                </Animated.View>
+              style={{
+                height: this.state.tentAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['55%', '100%'],
+                }),
+                width: '80%',
+              }}>
+              <Text adjustsFontSizeToFit style={styles.title}>
+                {'Inicia tu aventura con '}
+                <Text style={styles.textStrong}>Mochilapp</Text>
+              </Text>
             </Animated.View>
+            <Animated.View
+              style={{
+                opacity: this.state.tentAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [1, 0],
+                }),
+                height: '45%',
+              }}>
+              <Tent />
+            </Animated.View>
+          </Animated.View>
 
-            <View style={styles.optionsContainer}>
-              <View
-                style={{
-                  //   backgroundColor: 'red',
-                  marginHorizontal: '16.5%',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  position: 'relative',
-                }}>
-                <Animated.View
-                  style={[
-                    styles.animatedView,
-                    {
-                      left: switchAnimation.interpolate({
-                        inputRange: [0, 55],
-                        outputRange: ['0%', '55%'],
-                      }),
-                    },
-                  ]}
-                />
-                <TouchableWithoutFeedback
-                  onPress={() => this.switchAnimation(false)}>
-                  <View style={styles.loginButtonsContainer}>
-                    <Text
-                      adjustsFontSizeToFit
-                      style={[
-                        styles.loginButtons,
-                        switchState || styles.activeButton,
-                      ]}>
-                      Iniciar sesión
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback
-                  onPress={() => this.switchAnimation(true)}>
-                  <View style={styles.loginButtonsContainer}>
-                    <Text
-                      style={[
-                        styles.loginButtons,
-                        !switchState || styles.activeButton,
-                      ]}>
-                      Regístrate
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
-              </View>
+          <View style={styles.optionsContainer}>
+            <View
+              style={{
+                //   backgroundColor: 'red',
+                marginHorizontal: '16.5%',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                position: 'relative',
+              }}>
+              <Animated.View
+                style={[
+                  styles.animatedView,
+                  {
+                    left: switchAnimation.interpolate({
+                      inputRange: [0, 55],
+                      outputRange: ['0%', '55%'],
+                    }),
+                  },
+                ]}
+              />
+              <TouchableWithoutFeedback
+                onPress={() => this.switchAnimation(false)}>
+                <View style={styles.loginButtonsContainer}>
+                  <Text
+                    adjustsFontSizeToFit
+                    style={[
+                      styles.loginButtons,
+                      switchState || styles.activeButton,
+                    ]}>
+                    Iniciar sesión
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+              <TouchableWithoutFeedback
+                onPress={() => this.switchAnimation(true)}>
+                <View style={styles.loginButtonsContainer}>
+                  <Text
+                    style={[
+                      styles.loginButtons,
+                      !switchState || styles.activeButton,
+                    ]}>
+                    Regístrate
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
             </View>
+          </View>
+
+          <ScrollView
+            horizontal={true}
+            pagingEnabled={true}
+            showsHorizontalScrollIndicator={false}
+            scrollEnabled={this.state.scrollEnabled}
+            onScroll={this.handleScroll}
+            ref={this.state.scrollViewFormRef}>
             <View
               style={{
                 // marginHorizontal: '10%',
-                marginVertical: 10,
+                marginVertical: 15,
+                width: widthWindow,
               }}>
               <TextInputMA
                 keyboardType={'email-address'}
                 type={'email'}
                 placeholder={'Correo electronico'}
                 scrollViewRef={scrollViewRef}
+                scrollState={this.changeStateOfScroll}
               />
               <TextInputMA
                 type={'password'}
                 placeholder={'Contraseña'}
                 scrollViewRef={scrollViewRef}
+                scrollState={this.changeStateOfScroll}
               />
             </View>
+            <View
+              style={{
+                // marginHorizontal: '10%',
+                marginVertical: 15,
+                width: widthWindow,
+              }}>
+              <TextInputMA
+                keyboardType={'email-address'}
+                type={'email'}
+                placeholder={'Screen 2'}
+                scrollViewRef={scrollViewRef}
+                scrollState={this.changeStateOfScroll}
+              />
+              <TextInputMA
+                type={'password'}
+                placeholder={'Screen 2'}
+                scrollViewRef={scrollViewRef}
+                scrollState={this.changeStateOfScroll}
+              />
+            </View>
+          </ScrollView>
         </ScrollView>
       </View>
     );
@@ -201,7 +263,7 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     marginTop: 12,
-    height: heightWindow * .05,
+    height: heightWindow * 0.05,
   },
   loginButtonsContainer: {
     width: (125 / 411) * widthWindow,
