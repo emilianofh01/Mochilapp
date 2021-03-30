@@ -1,5 +1,5 @@
-import React, {Component} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
+import React, { Component } from 'react';
+import { ScrollView } from 'react-native-gesture-handler';
 import TextInputMA from './TextInputMA';
 import Tent from './Tent';
 import {
@@ -11,7 +11,9 @@ import {
   TouchableWithoutFeedback,
   Animated,
   Keyboard,
+  Button,
 } from 'react-native';
+import { color } from 'react-native-reanimated';
 
 const widthWindow = Dimensions.get('window').width;
 const heightWindow = Dimensions.get('window').height;
@@ -23,10 +25,10 @@ class Login extends Component {
     scrollViewRef: React.createRef(),
     scrollViewFormRef: React.createRef(),
     scrollViewFormPos: 0,
-
     switchState: false,
     onInput: false,
-    scrollEnabled: true,
+    isAnimating: false,
+    scrollEnabled: true
   };
 
   componentWillUnmount() {
@@ -36,8 +38,8 @@ class Login extends Component {
 
   changeStateOfScroll = () => {
     !this.state.scrollEnabled
-      ? this.setState({scrollEnabled: true})
-      : this.setState({scrollEnabled: false});
+      ? this.setState({ scrollEnabled: true })
+      : this.setState({ scrollEnabled: false });
   };
 
   componentDidMount() {
@@ -49,17 +51,21 @@ class Login extends Component {
     });
   }
 
-  switchAnimation = (button = undefined, before = false) => {
-    const {switchAnimation, switchState, scrollViewFormRef} = this.state;
+  switchAnimation = (button) => {
+    const { switchAnimation, switchState, scrollViewFormRef } = this.state;
+    if (button != switchState) {
+      !switchState
+        ? scrollViewFormRef.current.scrollTo({ x: widthWindow, animated: true })
+        : scrollViewFormRef.current.scrollTo({ x: 0, animated: true });
 
-    if (button != switchState && button != undefined || before === false) {
+      Animated.timing(switchAnimation, {
+        toValue: switchState ? 0 : 1,
+        duration: 250,
+        useNativeDriver: false,
+      }).start(() => { this.setState({ isAnimating: false }) });
 
-      if(before === false) {
-        !switchState 
-        ? scrollViewFormRef.current.scrollTo({x: widthWindow, animated: true})
-        : scrollViewFormRef.current.scrollTo({x: 0, animated:true});
-      }
-      
+      this.setState({ switchState: !switchState, isAnimating: true });
+
     }
   };
 
@@ -71,29 +77,24 @@ class Login extends Component {
     }).start();
   };
 
-  handleScroll = (event) => {
-    const scrollPosition = (event.nativeEvent.contentOffset.x / widthWindow) * 100;
-    
-
-    if(scrollPosition > 80) {
-      this.switchAnimation(true, true)
-      
-
-      this.setState({switchState: false});
-    } else if(scrollPosition <= 30) {
-      this.switchAnimation(true, true);
-     
-
-      this.setState({switchState: false});
+  handleScroll = ({ nativeEvent: event }) => {
+    if (!this.state.isAnimating) {
+      let width = event.layoutMeasurement.width;
+      let scroll = event.contentOffset.x;
+      this.state.switchAnimation.setValue(scroll / width);
+      if (scroll > width / 2 && !this.state.switchState) {
+        console.log(true)
+        this.setState({ switchState: true });
+      }
+      if (scroll < width / 2 && this.state.switchState) {
+        console.log(false)
+        this.setState({ switchState: false });
+      }
     }
-    // scrollPosition > 80 
-    //   ? this.switchAnimation(true, true)
-    //     : this.switchAnimation(false, true)
-
   }
 
   render() {
-    const {scrollViewRef, switchAnimation, switchState} = this.state;
+    const { scrollViewRef, switchAnimation, switchState } = this.state;
 
     return (
       <View style={styles.container}>
@@ -151,7 +152,7 @@ class Login extends Component {
                   styles.animatedView,
                   {
                     left: switchAnimation.interpolate({
-                      inputRange: [0, 55],
+                      inputRange: [0, 1],
                       outputRange: ['0%', '55%'],
                     }),
                   },
@@ -160,26 +161,36 @@ class Login extends Component {
               <TouchableWithoutFeedback
                 onPress={() => this.switchAnimation(false)}>
                 <View style={styles.loginButtonsContainer}>
-                  <Text
+                  <Animated.Text
                     adjustsFontSizeToFit
                     style={[
                       styles.loginButtons,
-                      switchState || styles.activeButton,
+                      {
+                        color: switchAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ["#ffffff", "#9E9E9E"],
+                        }),
+                      }
                     ]}>
                     Iniciar sesión
-                  </Text>
+                  </Animated.Text>
                 </View>
               </TouchableWithoutFeedback>
               <TouchableWithoutFeedback
                 onPress={() => this.switchAnimation(true)}>
                 <View style={styles.loginButtonsContainer}>
-                  <Text
+                  <Animated.Text
                     style={[
                       styles.loginButtons,
-                      !switchState || styles.activeButton,
+                      {
+                        color: switchAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ["#9E9E9E", "#ffffff"],
+                        }),
+                      }
                     ]}>
                     Regístrate
-                  </Text>
+                  </Animated.Text>
                 </View>
               </TouchableWithoutFeedback>
             </View>
@@ -211,6 +222,21 @@ class Login extends Component {
                 scrollViewRef={scrollViewRef}
                 scrollState={this.changeStateOfScroll}
               />
+
+              <View style={styles.greenButton}>
+                <Text style={styles.greenButtonTitle}>Iniciar sesión</Text>
+              </View>
+              <View style={{marginHorizontal:"10%", display:'flex', alignItems:'center'}}>
+                <Text style={{fontFamily:'Mulish-Bold', color:'#AAAAAA'}}>Tambien puede iniciar con</Text>
+                <View style={{display:'flex', flexDirection: 'row'}}>
+                  <View style={styles.socialLoginIcons}>
+
+                  </View>
+                  <View style={styles.socialLoginIcons}>
+
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               style={{
@@ -290,6 +316,26 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 20,
   },
+  greenButton: {
+    backgroundColor: "#01BB6B",
+    marginHorizontal: '10%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 30
+  },
+  greenButtonTitle: {
+    color: '#fff',
+    fontFamily: 'Mulish-Bold',
+    fontSize: 15,
+  }, 
+  socialLoginIcons: {
+    backgroundColor:'white', 
+    width:'12%', 
+  }
 });
 
 export default Login;
